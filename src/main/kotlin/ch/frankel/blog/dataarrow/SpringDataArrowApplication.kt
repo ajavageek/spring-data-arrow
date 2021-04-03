@@ -1,6 +1,7 @@
 package ch.frankel.blog.dataarrow
 
 import java.time.LocalDate
+import arrow.core.Either
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.support.beans
@@ -17,8 +18,13 @@ class PersonHandler(private val repository: PersonRepository) {
     fun getAll(req: ServerRequest) = ServerResponse.ok().body(repository.findAll())
     fun getOne(req: ServerRequest): ServerResponse = repository
         .findById(req.pathVariable("id").toLong())
-        .map { ServerResponse.ok().body(it) }
-        .orElse(ServerResponse.notFound().build())
+        .map { Either.fromNullable(it) }
+        .map { either ->
+            either.fold(
+                { ServerResponse.notFound().build() },
+                { ServerResponse.ok().body(it) }
+            )
+        }.get()
 }
 
 fun beans() = beans {

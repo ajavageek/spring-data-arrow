@@ -1,30 +1,34 @@
 package ch.frankel.blog.dataarrow
 
 import java.time.LocalDate
-import java.util.*
 import arrow.core.Either
-import arrow.core.left
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.support.beans
 import org.springframework.data.annotation.Id
+import org.springframework.data.jdbc.core.JdbcAggregateOperations
 import org.springframework.data.repository.CrudRepository
 import org.springframework.web.servlet.function.*
 
 class Person(@Id val id: Long, var name: String, var birthdate: LocalDate?)
 
-interface PersonRepository : CrudRepository<Person, Long>
+interface PersonRepository : CrudRepository<Person, Long>, CustomPersonRepository
 
-private fun <T> Optional<T>.toEither() =
-    if (isPresent) Either.right(get())
-    else Unit.left()
+interface CustomPersonRepository {
+    fun arrowFindById(id: Long): Either<Unit, Person>
+}
+
+@Suppress("UNUSED")
+class CustomPersonRepositoryImpl(private val ops: JdbcAggregateOperations) : CustomPersonRepository {
+
+    override fun arrowFindById(id: Long) = Either.fromNullable(ops.findById(id, Person::class.java))
+}
 
 class PersonHandler(private val repository: PersonRepository) {
 
     fun getAll(req: ServerRequest) = ServerResponse.ok().body(repository.findAll())
     fun getOne(req: ServerRequest): ServerResponse = repository
-        .findById(req.pathVariable("id").toLong())
-        .toEither()
+        .arrowFindById(req.pathVariable("id").toLong())
         .fold(
             { ServerResponse.notFound().build() },
             { ServerResponse.ok().body(it) }

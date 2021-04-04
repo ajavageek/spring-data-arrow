@@ -2,6 +2,7 @@ package ch.frankel.blog.dataarrow
 
 import arrow.core.Either
 import org.springframework.data.jdbc.core.JdbcAggregateOperations
+import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories
 import org.springframework.data.mapping.PersistentEntity
 import org.springframework.data.repository.NoRepositoryBean
 import org.springframework.data.repository.Repository
@@ -23,3 +24,6 @@ class SimpleArrowRepository<T, ID>(
 
     override fun findAll(): Iterable<T> = ops.findAll(entity.type)
 }
+
+@EnableJdbcRepositories(repositoryBaseClass = SimpleArrowRepository::class)
+annotation class EnableArrowRepositories

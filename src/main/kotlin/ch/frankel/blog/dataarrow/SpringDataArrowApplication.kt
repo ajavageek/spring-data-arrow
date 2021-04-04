@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.support.beans
 import org.springframework.data.annotation.Id
-import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories
 import org.springframework.web.servlet.function.*
 
 class Person(@Id val id: Long, var name: String, var birthdate: LocalDate?)
@@ -35,7 +34,7 @@ fun beans() = beans {
 }
 
 @SpringBootApplication
-@EnableJdbcRepositories(repositoryBaseClass = SimpleArrowRepository::class)
+@EnableArrowRepositories
 class SpringDataArrowApplication
 
 fun main(args: Array<String>) {
